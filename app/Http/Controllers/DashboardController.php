@@ -11,11 +11,11 @@ class DashboardController extends Controller
     {
         if(Auth::user()->hasRole('user'))
         {
-            return view('user/userDashboard');
+            return view('user.userDashboard');
         }
         elseif(Auth::user()->hasRole('blogwriter'))
         {
-            return view('blogwriter/blogwriterDash');
+            return view('blogwriter.blogwriterDash');
         }
         elseif(Auth::user()->hasRole('admin'))
         {
@@ -28,8 +28,8 @@ class DashboardController extends Controller
         return view('user/myprofile');
     }
 
-   public function postcreate()
+   public function blogwriter()
     {
-        return view('blogwriter/postcreate');
+        return view('blogwriter.blogwriterDash');
     }
 }

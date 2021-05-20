@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PostController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,7 +30,30 @@ Route::group(['middleware' => ['auth', 'role:user']], function() {
 
 // for blogwriters
 Route::group(['middleware' => ['auth', 'role:blogwriter']], function() { 
-    Route::get('/dashboard/postcreate', 'App\Http\Controllers\DashboardController@postcreate')->name('dashboard.postcreate');
+    Route::get('/dashboard/blogwriter', 'App\Http\Controllers\DashboardController@blogwriter')->name('dashboard.blogwriterDash');
 });
 
+// Ressource Post
+// create post
+Route::middleware('permission:create-post')->group(function(){
+    Route::get('/posts/create', [PostController::class, 'create'])->name('post.create');
+    Route::post('/posts', [PostController::class, 'store'])->name('post.store');
+});
+
+// read post
+Route::middleware('permission:read-post')->group(function(){
+    Route::get('/posts', [PostController::class, 'index'])->name('post.index');
+    Route::get('/posts/{post}', [PostController::class, 'show'])->name('post.show');
+});
+
+// update post
+Route::middleware('permission:update-post')->group(function(){
+    Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('post.edit');
+    Route::put('/posts/{post}', [PostController::class, 'update'])->name('post.update');
+});
+
+// delete post
+Route::middleware('permission:delete-post')->group(function(){
+    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('post.destroy');
+});
 require __DIR__.'/auth.php';
