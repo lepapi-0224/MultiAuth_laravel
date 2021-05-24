@@ -14,7 +14,11 @@ class UserContoller extends Controller
      */
     public function index()
     {
-        //
+        $users = User::latest()->paginate(5);
+
+        return view('user.index',compact('users'))
+
+            ->with('i', (request()->input('page', 1) - 1) * 5);
     }
 
     /**
@@ -24,7 +28,7 @@ class UserContoller extends Controller
      */
     public function create()
     {
-        //
+        return view('user.create');
     }
 
     /**
@@ -35,7 +39,14 @@ class UserContoller extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'title' => 'required',
+            'content' => 'required',
+        ]);
+
+        User::create($request->all());
+        return redirect()->route('user.index')
+                        ->with('success','User created successfully.');
     }
 
     /**
@@ -46,7 +57,7 @@ class UserContoller extends Controller
      */
     public function show(User $user)
     {
-        //
+        return view('user.show',compact('user'));
     }
 
     /**
@@ -57,7 +68,7 @@ class UserContoller extends Controller
      */
     public function edit(User $user)
     {
-        //
+        return view('user.edit',compact('user'));
     }
 
     /**
@@ -69,7 +80,14 @@ class UserContoller extends Controller
      */
     public function update(Request $request, User $user)
     {
-        //
+        $request->validate([
+            'title' => 'required',
+            'content' => 'required',
+        ]);
+
+        $user->update($request->all());
+        return redirect()->route('user.index')
+                        ->with('success','User updated successfully');
     }
 
     /**
@@ -80,6 +98,8 @@ class UserContoller extends Controller
      */
     public function destroy(User $user)
     {
-        //
+        $user->delete();
+        return redirect()->route('user.index')
+                        ->with('success','Post deleted successfully');
     }
 }

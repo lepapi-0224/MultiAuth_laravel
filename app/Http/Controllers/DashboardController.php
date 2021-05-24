@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 class DashboardController extends Controller
 {
     public function index()
-    {
+    {        
         if(Auth::user()->hasRole('user'))
         {
             return view('user.userDashboard');
@@ -25,11 +25,11 @@ class DashboardController extends Controller
 
     public function myprofile()
     {
-        return view('user/myprofile');
+        return view('user.myprofile');
     }
 
    public function blogwriter()
     {
-        return view('blogwriter.blogwriterDash');
+        return view('blogwriter.postcreate');
     }
 }

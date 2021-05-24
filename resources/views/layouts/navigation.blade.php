@@ -27,7 +27,7 @@
 
                 @if(Auth::user()->hasRole('blogwriter'))
                 <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                    <x-nav-link :href="route('dashboard.postcreate')" :active="request()->routeIs('dashboard.postcreate')">
+                    <x-nav-link :href="route('dashboard.blogwriterDash')" :active="request()->routeIs('dashboard.blogwriterDash')">
                         {{ __('New Post') }}
                     </x-nav-link>
                 </div>
