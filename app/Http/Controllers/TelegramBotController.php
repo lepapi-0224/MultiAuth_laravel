@@ -2,17 +2,46 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
-use Telegram\Bot\Laravel\Facades\Telegram;
 use Telegram\Bot\FileUpload\InputFile;
+use Telegram\Bot\Laravel\Facades\Telegram;
 use Illuminate\Support\Str;
+use DB;
+
 
 class TelegramBotController extends Controller
 {
     public function updatedActivity()
     {
-        $response = Telegram::getUpdates();
-        dd($response);
+        $activity = Telegram::getUpdates();
+        $numbers = [];
+        $number = auth()->user()->telephone_number;
+        
+        foreach ($activity as $act) {
+            //echo $act->getMessage()->getText()." "."<br>";
+            if ($act->getMessage()->getText() == $number) {
+                $numbers[] = [
+                    'number' => $act->getMessage()->getText(),
+                    'id' => $act->getMessage()->getChat()->getId()
+                ];
+            }
+        }
+        //dd($numbers);
+        $lastData = end($numbers);
+
+        $user = User::where('telephone_number', $lastData['number'])->value('telephone_number');
+        if (empty($user)) {
+
+            return back()->with("danger", "Votre numero ne correspond pas !!");
+        } else {
+
+            User::where('telephone_number', $lastData['number'])
+                ->update(['user_id' => $lastData['id']]);
+
+            return back()->with("success", "Votre compte est connecte a telegram !!!");
+        }
+        
     }
 
     public function sendMessage()
@@ -22,24 +51,26 @@ class TelegramBotController extends Controller
 
     public function storeMessage(Request $request)
     {
+        //$user_id = $request->user()->user_id;
+        //dd(env('TELEGRAM_CHANNEL_ID', ''));
         $request->validate([
             'email' => 'required|email',
             'message' => 'required'
         ]);
 
-        $text = "A new contact us query\n"
+        $text = "A new contact\n"
             . "<b>Email Address: </b>\n"
             . "$request->email\n"
             . "<b>Message: </b>\n"
             . $request->message;
 
         Telegram::sendMessage([
-            'chat_id' => env('TELEGRAM_CHANNEL_ID', ''),
+            'chat_id' => $request->user()->user_id,
             'parse_mode' => 'HTML',
             'text' => $text
         ]);
 
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Message envoye avec success !!');
     }
 
     public function sendPhoto()

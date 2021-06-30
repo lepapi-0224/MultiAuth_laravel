@@ -1,4 +1,4 @@
-@extends('post.layout')
+@extends('user.layout')
 
 @section('content')
 

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 
-class UserContoller extends Controller
+class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -101,5 +101,10 @@ class UserContoller extends Controller
         $user->delete();
         return redirect()->route('user.index')
                         ->with('success','Post deleted successfully');
+    }
+
+    public function home()
+    {
+        return view('user.home');
     }
 }
