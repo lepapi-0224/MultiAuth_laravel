@@ -3,15 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Providers\OTPSendMessage;
 use Illuminate\Http\Request;
 use Telegram\Bot\FileUpload\InputFile;
 use Telegram\Bot\Laravel\Facades\Telegram;
 use Illuminate\Support\Str;
-use DB;
-
+use Tzsk\Otp\Facades\Otp;
 
 class TelegramBotController extends Controller
 {
+
     public function updatedActivity()
     {
         $activity = Telegram::getUpdates();
@@ -37,12 +38,103 @@ class TelegramBotController extends Controller
         } else {
 
             User::where('telephone_number', $lastData['number'])
-                ->update(['user_id' => $lastData['id']]);
+                ->update(['user_id' => $lastData['id']
+            ]);
+            
+            $unique_secret = md5('12345678');
+            $otp = Otp::digits(8)->expiry(30)->generate($unique_secret); // 8 digits, 30 min expiry
+            //event(new OTPSendMessage($lastData['number'], $otp));
+   
+            Telegram::sendMessage([
+                'chat_id' => $lastData['id'],
+                'parse_mode' => 'HTML',
+                'text' => "Entrez exactement ce code pour finalisez la liaison avec votre compte Netnoh !\n"
+                ."<b>$otp</b>"
+            ]);
 
             return back()->with("success", "Votre compte est connecte a telegram !!!");
         }
         
     }
+
+
+    //verification du numero de telephone par telegram bot 
+    public function verifyOTP(){
+        $activity = Telegram::getUpdates();
+        //dd($activity);
+
+        $numbers = [];
+        $number = auth()->user()->telephone_number;
+        $userid = auth()->user()->user_id;
+        
+        foreach ($activity as $act) {
+            if ($act->getMessage()->getChat()->getId() == $userid) {
+                $numbers[] = [
+                    'otp' => (int)$act->getMessage()->getText(),
+                ];
+            }
+        }
+
+        $lastData = end($numbers);
+        //dd($lastData);
+        $unique_secret = md5('12345678');
+        $result = Otp::digits(8)->expiry(30)->check($lastData['otp'], $unique_secret); // -> true
+
+        //dd($result);
+        if ($result == true) {
+            User::where('user_id', $userid)
+                    ->update(['is_verified' => 1
+            ]);
+
+            Telegram::sendMessage([
+            'chat_id' => $userid,
+            'parse_mode' => 'HTML',
+            'text' => "<b>Votre numero de telephone est correct !</b>"
+            ]);
+
+            Telegram::sendMessage([
+                'chat_id' => $userid,
+                'parse_mode' => 'HTML',
+                'text' => "<b>Votre compte telegram est lie a Netnoh </b>\n"
+                        ."<b>Desormais vous receverez vos notifications via ce canal</b>\n"
+                        ."Nous restons a votre disposition en cas d'un soucis !"
+                ]);
+
+            return back()->with("success", "Numero de telephone verifie !!");
+
+        } else {
+            return back()->with("danger", "Verifiez et recopiez exactement le code recu !!");
+        }
+    }
+
+
+    //verification par l'application web
+    public function verifyOTPweb(Request $request){
+        $number = $request->user()->telephone_number;
+        $request->validate(
+            [
+                'code' => 'required'
+            ]);
+        //dd($request->code);
+        $unique_secret = md5('12345678');
+        $result = Otp::digits(8)->expiry(30)->check($request->code, $unique_secret); // -> true
+        //dd($result);
+        
+        if($result == true)
+            { 
+                //throw new \Exception("Error Processing Request ". $result);
+                User::where('telephone_number', $number)
+                ->update(['is_verified' => 1
+                ]);
+
+                return back()->with("success", "Numero de telephone verifie !!");
+            }
+            else{
+                return back()->with("danger", "Verifiez et recopiez exactement le code recu !!");
+            }
+        
+    }
+
 
     public function sendMessage()
     {

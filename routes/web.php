@@ -85,6 +85,8 @@ Route::post('/send-message', 'App\Http\Controllers\TelegramBotController@storeMe
 Route::get('/send-photo', 'App\Http\Controllers\TelegramBotController@sendPhoto');
 Route::post('/store-photo', 'App\Http\Controllers\TelegramBotController@storePhoto');
 Route::get('/updated-activity', 'App\Http\Controllers\TelegramBotController@updatedActivity')->name('activity');
+Route::post('/verifyTel', 'App\Http\Controllers\TelegramBotController@verifyOTPweb')->name('verifytel');
+Route::get('/verifyOTP', 'App\Http\Controllers\TelegramBotController@verifyOTP')->name('verify');
 
 
 require __DIR__.'/auth.php';

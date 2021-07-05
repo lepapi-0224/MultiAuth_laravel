@@ -3,6 +3,12 @@
 @section('content')
 
     <div class="jumbotron text-center">
+
+    @if ($message = Session::get('success'))
+        <div class="alert alert-success">
+            <p>{{ $message }}</p>
+        </div>
+    @endif
         <div class="row">
 
             <div class="col-lg-12 margin-tb">
@@ -17,7 +23,7 @@
             </div>
         </div>
 
-        <form action="" method="POST">
+        <form action="{{ route('verifytel') }}" method="POST">
             @csrf
             <div class="row">
 

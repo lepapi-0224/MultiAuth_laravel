@@ -18,7 +18,8 @@
         <p>Cliquez <a href="{{ route('activity') }}"><b>Ici</b></a> pour lier votre compte</p><br>
 
         <h3><b>Troisieme etape</b></h3>
-        <p>Veuillez Confirmer votre numero de telephone <b><a href="{{ url('/confirmation') }}">Ici</a></b>
+        <p>Veuillez Confirmer votre numero de telephone <b><a href="{{ url('/confirmation') }}">Ici</a> </b> </p> <br>
+        <p> <b><a href="{{ route('verify') }}">Ici</a></b> </p>
     </div>
 
 @endsection
