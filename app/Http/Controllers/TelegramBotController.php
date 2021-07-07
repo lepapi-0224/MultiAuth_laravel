@@ -24,7 +24,7 @@ class TelegramBotController extends Controller
             if ($act->getMessage()->getText() == $number) {
                 $numbers[] = [
                     'number' => $act->getMessage()->getText(),
-                    'id' => $act->getMessage()->getChat()->getId()
+                    'id'     => $act->getMessage()->getChat()->getId()
                 ];
             }
         }
@@ -43,7 +43,9 @@ class TelegramBotController extends Controller
             
             $unique_secret = md5('12345678');
             $otp = Otp::digits(8)->expiry(30)->generate($unique_secret); // 8 digits, 30 min expiry
-            //event(new OTPSendMessage($lastData['number'], $otp));
+            
+            //send OTP to phone number client
+            event(new OTPSendMessage($lastData['number'], $otp));
    
             Telegram::sendMessage([
                 'chat_id' => $lastData['id'],
@@ -52,7 +54,7 @@ class TelegramBotController extends Controller
                 ."<b>$otp</b>"
             ]);
 
-            return back()->with("success", "Votre compte est connecte a telegram !!!");
+            return back()->with("success", "Veuillez renseigner par telegram le code reçu par sms pour finaliser le processus !");
         }
         
     }
@@ -64,13 +66,14 @@ class TelegramBotController extends Controller
         //dd($activity);
 
         $numbers = [];
-        $number = auth()->user()->telephone_number;
+        //$number = auth()->user()->telephone_number;
         $userid = auth()->user()->user_id;
         
         foreach ($activity as $act) {
             if ($act->getMessage()->getChat()->getId() == $userid) {
                 $numbers[] = [
                     'otp' => (int)$act->getMessage()->getText(),
+                    'id'  => $act->getMessage()->getChat()->getId()
                 ];
             }
         }
@@ -82,7 +85,7 @@ class TelegramBotController extends Controller
 
         //dd($result);
         if ($result == true) {
-            User::where('user_id', $userid)
+            User::where('user_id', $lastData['id'])
                     ->update(['is_verified' => 1
             ]);
 
@@ -100,10 +103,17 @@ class TelegramBotController extends Controller
                         ."Nous restons a votre disposition en cas d'un soucis !"
                 ]);
 
-            return back()->with("success", "Numero de telephone verifie !!");
+            return back()->with("success", "Numero de telephone verifie \n Désormais vous receverez vos notifications via telegram");
 
         } else {
-            return back()->with("danger", "Verifiez et recopiez exactement le code recu !!");
+
+            Telegram::sendMessage([
+                'chat_id' => $userid,
+                'parse_mode' => 'HTML',
+                'text' => "<b>Verifiez et recopiez exactement le code recu !</b>"
+                ]);
+
+            return back()->with("success", "Verifiez et recopiez exactement le code recu par telegram !");
         }
     }
 
